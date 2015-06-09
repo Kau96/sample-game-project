@@ -1,5 +1,6 @@
 M = {}
 M.maxLevels = 20
+M.levelScore = 0
 M.products = {}
 M.settings = {}
 M.settings.currentLevel = 1

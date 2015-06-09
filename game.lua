@@ -9,6 +9,18 @@ local utility = require( "utility" )
 local physics = require( "physics" )
 local myData = require( "mydata" )
 
+-- 
+-- define local variables here
+--
+local params
+local currentScore
+local currentScoreDisplay
+local levelText
+local spawnTimer
+
+--
+-- define local functions here
+--
 local function handleWin( event )
     if event.phase == "ended" then
         composer.removeScene("nextlevel")
@@ -25,6 +37,35 @@ local function handleLoss( event )
     return true
 end
 
+local function handleEnemyTouch( event )
+    if event.phase == "began" then
+        currentScore = currentScore + 10
+        currentScoreDisplay.text = string.format( "%06d", currentScore )
+        event.target:removeSelf()
+        return true
+    end
+end
+
+local function spawnEnemy( )
+    -- make a local copy of the scene's display group.
+    -- since this function isn't a member of the scene object,
+    -- there is no "self" to use, so access it directly.
+    local sceneGroup = scene.view  
+
+    -- generate a starting position on the screen, y will be off screne
+    local x = math.random(50, display.contentCenterX - 50)
+    local enemy = display.newCircle(x, -50, 25)
+    enemy:setFillColor( 1, 0, 0 )
+    sceneGroup:insert( enemy )
+    physics.addBody( enemy, "dynamic", { radius = 25 } )
+    enemy:addEventListener( "touch", handleEnemyTouch )
+    return enemy
+end
+
+local function spawnEnemies()
+    spawnTimer = timer.performWithDelay( 1000, spawnEnemy, -1 )
+end
+
 function scene:create( event )
     local sceneGroup = self.view
 
@@ -35,17 +76,25 @@ function scene:create( event )
 
     local thisLevel = myData.settings.currentLevel
     
+    --
+    -- These pieces of the app only need created.  We won't be accessing them any where else
     local background = display.newRect(0,0, display.contentWidth, display.contentHeight)
     background.anchorX = 0
     background.anchorY = 0
     background:setFillColor( 0.6, 0.7, 0.3 )
     sceneGroup:insert(background)
 
-    local levelText = display.newText(myData.settings.currentLevel, 0, 0, native.systemFontBold, 48 )
+    levelText = display.newText(myData.settings.currentLevel, 0, 0, native.systemFontBold, 48 )
     levelText:setFillColor( 0 )
     levelText.x = display.contentCenterX
     levelText.y = display.contentCenterY
     sceneGroup:insert( levelText )
+
+    -- 
+    -- because we want to access this in multiple functions, we need to forward declare the variable and
+    -- then create the object here in scene:create()
+    --
+    currentScoreDisplay = display.newText("000000", display.contentWidth - 50, 10, native.systemFont, 16 )
 
     --
     -- create your objects here
@@ -75,6 +124,14 @@ function scene:show( event )
 
     if event.phase == "did" then
         physics.start()
+        transition.to( levelText, { time = 500, alpha = 0 } )
+        timer.performWithDelay( 500, spawnEnemies )
+    else -- event.phase == "will"
+        --
+        -- reset your level here.
+        --
+        currentScore = 0
+        currentScoreDisplay.text = string.format( "%06d", currentScore )
     end
 end
 
@@ -84,8 +141,10 @@ function scene:hide( event )
     if event.phase == "will" then
         --
         -- Remove enterFrame listeners here
+        -- stop timers, phsics, any audio playing
         --
         physics.stop()
+        timer.cancel( spawnTimer )
     end
 
 end
