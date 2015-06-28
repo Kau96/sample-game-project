@@ -14,7 +14,15 @@ local newHighScore = false
 local function handleButtonEvent( event )
 
     if ( "ended" == event.phase ) then
-        composer.gotoScene("menu", { effect = "crossFade", time = 333 })
+        local options = {
+            effect = "crossFade",
+            time = 500,
+            params = {
+                someKey = "someValue",
+                someOtherKey = 10
+            }
+        }
+        composer.gotoScene( "menu", options )
     end
     return true
 end

@@ -113,6 +113,12 @@ function scene:show( event )
     local sceneGroup = self.view
 
     params = event.params
+    utility.print_r(event)
+
+    if params then
+        print(params.someKey)
+        print(params.someOtherKey)
+    end
 
     if event.phase == "did" then
         composer.removeScene( "game" ) 
