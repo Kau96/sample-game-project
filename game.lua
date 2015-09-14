@@ -213,7 +213,7 @@ function scene:show( event )
     if event.phase == "did" then
         physics.start()
         transition.to( levelText, { time = 500, alpha = 0 } )
-        timer.performWithDelay( 500, spawnEnemies )
+        spawnTimer = timer.performWithDelay( 500, spawnEnemies )
     else -- event.phase == "will"
         -- The "will" phase happens before the scene transitions on screen.  This is a great
         -- place to "reset" things that might be reset, i.e. move an object back to its starting
